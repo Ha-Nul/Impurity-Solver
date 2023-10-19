@@ -99,11 +99,11 @@ class Testing
 
         MatrixXd round_propagater_ite(MatrixXd loc, vector<MatrixXd> sigma, MatrixXd ite, int n);
         vector<MatrixXd> Sigma(MatrixXd N,vector<MatrixXd> H_exp, vector<double> V);
-        vector<MatrixXd> Propagator(int n);
+        vector<MatrixXd> Propagator(int n ,vector<MatrixXd> array);
 
         double logg(vector<MatrixXd> prop);
 
-        MatrixXd iteration();
+        vector<MatrixXd> Iteration(int k, int n);
 
 
 };

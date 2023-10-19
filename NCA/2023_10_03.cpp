@@ -230,7 +230,7 @@ MatrixXd Testing::round_propagater_ite(MatrixXd loc, vector<MatrixXd> sigma, Mat
 
 
 
-vector<MatrixXd> Testing::Propagator(int n)
+vector<MatrixXd> Testing::Propagator(int n,vector<MatrixXd> array)
 {
     vector<MatrixXd> proparray(k);
     MatrixXd Iden = MatrixXd::Identity(3,3);
@@ -241,7 +241,7 @@ vector<MatrixXd> Testing::Propagator(int n)
     MatrixXd H_loc = Hamiltonian_loc(Eigenvalue_Even(),Eigenvalue_Odd());
     MatrixXd H_N = Hamiltonian_N(Eigenvector_Even(),Eigenvector_Odd(),0.2);
     vector<MatrixXd> H_e = Hamiltonian_exp(Eigenvalue_Even(),Eigenvalue_Odd());
-    vector<MatrixXd> Sig = Sigma(H_N,H_e,Int);
+    vector<MatrixXd> Sig = array;
     
     proparray[0] = Iden;
 
@@ -254,6 +254,36 @@ vector<MatrixXd> Testing::Propagator(int n)
     return proparray;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+vector<MatrixXd> Testing::Iteration(int k , int n)
+{
+    vector<MatrixXd> Sig;
+    vector<MatrixXd> Prop;
+
+    vector<double> coup = coupling(0.2,0.2,10);
+    vector<double> Int = Interact(coup,tau_grid);
+
+    MatrixXd H_loc = Hamiltonian_loc(Eigenvalue_Even(),Eigenvalue_Odd());
+    MatrixXd H_N = Hamiltonian_N(Eigenvector_Even(),Eigenvector_Odd(),0.2);
+    vector<MatrixXd> H_e = Hamiltonian_exp(Eigenvalue_Even(),Eigenvalue_Odd());
+
+    for(int i = 0; i < k; i++)
+    {
+        if(i==0)
+        {   Sig = Sigma(H_N,H_e,Int);
+            Prop = Propagator(n,Sig);
+        }
+        else
+        {
+            Sig = Sigma(H_N,Prop,Int);
+            Prop = Propagator(n,Prop);
+        }
+    }
+
+    return Prop;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 
 double Testing::logg(vector<MatrixXd> prop)
@@ -261,7 +291,7 @@ double Testing::logg(vector<MatrixXd> prop)
     double Trace = prop[k-1].trace();
     double lambda = -(1/grid[k-1]) * log(Trace);
 
-    cout << "prop" << prop[k-1] << endl;
+    cout << "Trace" << Trace << endl;
     cout << "grid" << grid[k-1] << endl;
 
     return lambda;
@@ -276,21 +306,9 @@ int main()
 
     Testing test;
     
-    //vector<double> gre = test.green(test.grid);
-    vector<double> coup = test.coupling(0.2,0.2,10);
-    vector<double> Int = test.Interact(coup,test.grid);
-    
-
-    MatrixXd H_loc = test.Hamiltonian_loc(test.Eigenvalue_Even(),test.Eigenvalue_Odd());
-    MatrixXd H_N = test.Hamiltonian_N(test.Eigenvector_Even(),test.Eigenvector_Odd(),0.2);
-    vector<MatrixXd> H_e = test.Hamiltonian_exp(test.Eigenvalue_Even(),test.Eigenvalue_Odd());
-    vector<MatrixXd> Sig = test.Sigma(H_N,H_e,Int);
-
-    MatrixXd roundp = test.round_propagater_ite(H_loc,Sig,Iden,6);
-    
     //Testing test; 
 
-    vector<MatrixXd> Prop = test.Propagator(5);
+    vector<MatrixXd> Prop = test.Iteration(4,5);
 
     for (int i = 0; i <10 ; i++)
     {
