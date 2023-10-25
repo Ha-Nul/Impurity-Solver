@@ -97,13 +97,19 @@ class Testing
         vector<MatrixXd> Hamiltonian_exp(MatrixXd a, MatrixXd b);
         MatrixXd Hamiltonian_loc(MatrixXd a, MatrixXd b);
 
+<<<<<<< HEAD
+        MatrixXd round_propagater_ite(const MatrixXd &loc, const vector<MatrixXd> &sigma, const MatrixXd &ite, int n);
+        vector<MatrixXd> Sigma(const MatrixXd &N,const vector<MatrixXd> &H_exp, const vector<double> &V);
+        vector<MatrixXd> Propagator(int n ,const vector<MatrixXd> &array);
+=======
         MatrixXd round_propagater_ite(MatrixXd loc, vector<MatrixXd> sigma, MatrixXd ite, int n);
         vector<MatrixXd> Sigma(MatrixXd N,vector<MatrixXd> H_exp, vector<double> V);
-        vector<MatrixXd> Propagator(int n ,vector<MatrixXd> array);
+        vector<MatrixXd> Propagator(int n);
+>>>>>>> parent of 359597c (NCA first trial : add iteration, using recursive call)
 
         double logg(vector<MatrixXd> prop);
 
-        vector<MatrixXd> Iteration(int k, int n);
+        MatrixXd iteration();
 
 
 };

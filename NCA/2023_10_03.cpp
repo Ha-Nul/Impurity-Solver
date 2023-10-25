@@ -187,15 +187,17 @@ MatrixXd Testing::Hamiltonian_loc(MatrixXd a, MatrixXd b)
 ////////////////////////////////////////////////////////////////////////////////
 
 
-vector<MatrixXd> Testing::Sigma(MatrixXd N, vector<MatrixXd> H_exp, vector<double> V)
+vector<MatrixXd> Testing::Sigma(const MatrixXd &N,const vector<MatrixXd> &H_exp, const vector<double> &V)
 {
 
     vector<MatrixXd> Narray(k,N);
     vector<MatrixXd> Sigarray(k);
-    MatrixXd Sigsum = MatrixXd::Zero(3,3);
+
+    //cout << "this is Sigma" << endl;
 
     for (int i=0; i < k ; i++)
     {   
+        //cout << H_exp[i] << endl;
         Sigarray[i] = 0.5 * V[i] * (Narray[i] * H_exp[i] * Narray[i]);
     }
 
@@ -206,7 +208,7 @@ vector<MatrixXd> Testing::Sigma(MatrixXd N, vector<MatrixXd> H_exp, vector<doubl
 //////////////////////////////////////////////////////////////////////////////
 
 
-MatrixXd Testing::round_propagater_ite(MatrixXd loc, vector<MatrixXd> sigma, MatrixXd ite, int n)
+MatrixXd Testing::round_propagater_ite(const MatrixXd &loc, const vector<MatrixXd> &sigma, const MatrixXd &ite, int n)
 {
     //MatrixXd prop_iter_zero = MatrixXd::Identity(n,n);
     MatrixXd sigsum = MatrixXd::Zero(3,3);
@@ -230,7 +232,11 @@ MatrixXd Testing::round_propagater_ite(MatrixXd loc, vector<MatrixXd> sigma, Mat
 
 
 
-vector<MatrixXd> Testing::Propagator(int n,vector<MatrixXd> array)
+<<<<<<< HEAD
+vector<MatrixXd> Testing::Propagator(int n,const vector<MatrixXd> &array)
+=======
+vector<MatrixXd> Testing::Propagator(int n)
+>>>>>>> parent of 359597c (NCA first trial : add iteration, using recursive call)
 {
     vector<MatrixXd> proparray(k);
     MatrixXd Iden = MatrixXd::Identity(3,3);
@@ -241,22 +247,34 @@ vector<MatrixXd> Testing::Propagator(int n,vector<MatrixXd> array)
     MatrixXd H_loc = Hamiltonian_loc(Eigenvalue_Even(),Eigenvalue_Odd());
     MatrixXd H_N = Hamiltonian_N(Eigenvector_Even(),Eigenvector_Odd(),0.2);
     vector<MatrixXd> H_e = Hamiltonian_exp(Eigenvalue_Even(),Eigenvalue_Odd());
+<<<<<<< HEAD
     vector<MatrixXd> Sig = array;
+    /*
+    for(int h = 0; h < Sig.size() ; h++)
+    {
+        cout << "inside Prop" << endl;
+        cout << h << Prop[h] << endl;
+    }
+    */
+=======
+    vector<MatrixXd> Sig = Sigma(H_N,H_e,Int);
     
+>>>>>>> parent of 359597c (NCA first trial : add iteration, using recursive call)
     proparray[0] = Iden;
-
+    
     for(int i = 1; i < k; i++)
     {
         proparray[i] = proparray[i-1] + tau_grid[i] * round_propagater_ite(H_loc,Sig,proparray[i-1],n);
-        //cout << "this is round propagator" << endl << round_propagater_ite(H_loc,Sig,proparray[i-1],n) << endl;
+        //cout << "this is round propagator" << endl << i << endl << round_propagater_ite(H_loc,Sig,proparray[i-1],n) << endl;
     }
 
     return proparray;
 }
 
+<<<<<<< HEAD
 ///////////////////////////////////////////////////////////////////////////////
 
-vector<MatrixXd> Testing::Iteration(int k , int n)
+vector<MatrixXd> Testing::Iteration(int j , int n)
 {
     vector<MatrixXd> Sig;
     vector<MatrixXd> Prop;
@@ -277,13 +295,25 @@ vector<MatrixXd> Testing::Iteration(int k , int n)
         else
         {
             Sig = Sigma(H_N,Prop,Int);
-            Prop = Propagator(n,Prop);
+            Prop = Propagator(n,Sig);
+
+            //cout << "this is " << i << " th Prop" << endl;
+
+            /*
+            for(int j=0; j<10; j++)
+            {
+                cout << Prop[j] << endl;
+            }
+            */
         }
     }
+
 
     return Prop;
 }
 
+=======
+>>>>>>> parent of 359597c (NCA first trial : add iteration, using recursive call)
 //////////////////////////////////////////////////////////////////////////////
 
 double Testing::logg(vector<MatrixXd> prop)
@@ -291,13 +321,13 @@ double Testing::logg(vector<MatrixXd> prop)
     double Trace = prop[k-1].trace();
     double lambda = -(1/grid[k-1]) * log(Trace);
 
-    cout << "Trace" << Trace << endl;
+    cout << "prop" << prop[k-1] << endl;
     cout << "grid" << grid[k-1] << endl;
 
     return lambda;
 }
 
-//////////////////////////////////////////////////////////////////////////////
+////////////````//////////////////////////////////////////////////////////////////
 
 int main()
 {
@@ -306,15 +336,32 @@ int main()
 
     Testing test;
     
+    //vector<double> gre = test.green(test.grid);
+    vector<double> coup = test.coupling(0.2,0.2,10);
+    vector<double> Int = test.Interact(coup,test.grid);
+    
+
+    MatrixXd H_loc = test.Hamiltonian_loc(test.Eigenvalue_Even(),test.Eigenvalue_Odd());
+    MatrixXd H_N = test.Hamiltonian_N(test.Eigenvector_Even(),test.Eigenvector_Odd(),0.2);
+    vector<MatrixXd> H_e = test.Hamiltonian_exp(test.Eigenvalue_Even(),test.Eigenvalue_Odd());
+    vector<MatrixXd> Sig = test.Sigma(H_N,H_e,Int);
+
+    MatrixXd roundp = test.round_propagater_ite(H_loc,Sig,Iden,6);
+    
     //Testing test; 
 
-    vector<MatrixXd> Prop = test.Iteration(4,5);
+<<<<<<< HEAD
+    vector<MatrixXd> Prop = test.Iteration(10,5);
+    /*
+=======
+    vector<MatrixXd> Prop = test.Propagator(5);
 
+>>>>>>> parent of 359597c (NCA first trial : add iteration, using recursive call)
     for (int i = 0; i <10 ; i++)
     {
         cout << Prop[i] << endl;
     }
-    
+    */
     double check = test.logg(Prop);
 
     cout << "this is check" << endl << check << endl;
