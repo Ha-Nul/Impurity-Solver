@@ -77,15 +77,17 @@ class Testing
             return Matrix1;
         }
 
-        vector<double> tau_grid = linspace(0,1,10);
-        vector<double> k_grid = linspace(1,10,10);
+        vector<double> tau_grid = linspace(0,1,100);
+        //vector<int> k_grid = {1,1,1,1,1,1,1,1,1,1};
         int k = tau_grid.size();
 
     public:
-        vector<double> grid = linspace(0,1,10);
+
+        vector<double> grid = linspace(0,1,100);
         vector<double> green(double tau);
         vector<double> coupling(double v, double g, double W);
         vector<double> Interact(vector<double> coupling, vector<double> tau);
+        vector<double> Interact_V(vector<double> couplint, vector<double> tau, double omega);
 
         MatrixXd Eigenvector_Even();
         MatrixXd Eigenvalue_Even();
@@ -97,13 +99,15 @@ class Testing
         MatrixXd Hamiltonian_loc(MatrixXd a, MatrixXd b);
         MatrixXd Hamiltonian_loc_ite(MatrixXd a, MatrixXd b,const double &lambda);
 
-        MatrixXd round_propagater_ite(const MatrixXd &loc, const vector<MatrixXd> &sigma, const MatrixXd &ite, int n);
+        MatrixXd round_propagater_ite(const MatrixXd &loc, const vector<MatrixXd> &sigma, const MatrixXd &ite, int weight);
         vector<MatrixXd> Sigma(const MatrixXd &N,const vector<MatrixXd> &H_exp, const vector<double> &V);
-        vector<MatrixXd> Propagator(int n ,const vector<MatrixXd> &array , const MatrixXd &loc);
+        vector<MatrixXd> Propagator(int weight ,const vector<MatrixXd> &array , const MatrixXd &loc);
 
         double chemical_poten(MatrixXd prop);
 
-        vector<MatrixXd> Iteration(const int &n, int testingint);
-        vector<double> TestingIteration(const int &n, int testingint, int testingint2);
+        vector<MatrixXd> Iteration(const int &weight, int iteration);
+        vector<double> TestingIteration(const int &n, int testingint);
+
+        vector<double> Chi_sp(const int &weight, int iteration);
 
 };

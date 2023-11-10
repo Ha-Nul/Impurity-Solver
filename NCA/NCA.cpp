@@ -9,6 +9,8 @@ using namespace std;
 using namespace Eigen;
 
 const double g = 0.2;
+vector<double> k_grid(10,1);
+double gamma = 1;
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -44,6 +46,7 @@ vector<double> Testing::coupling(double v, double g, double W)
     for (int i = 0; i < k_grid.size() ; i++)
     {
         coupling_array[i] = g_array[i] * sqrt(abs(k_grid[i]) * v_array[i]/(1 + pow((abs(k_grid[i]) * v_array[i]/W_array[i]),2)));
+        //cout << "this is coupling " << coupling_array[i] << endl;
     }
     
     return coupling_array;
@@ -67,7 +70,28 @@ vector<double> Testing::Interact(vector<double> coupling, vector<double> tau)
 
     return blank_factor;
 }
+////////////////////////////////////////////////////////////////////////////////////
 
+vector<double> Testing::Interact_V(vector<double>coupling, vector<double> tau, double omega)
+{
+    double coupling_const = coupling[0];
+
+    vector<double> hpcos(tau.size(),0);
+    vector<double> hpsin(tau.size(),0);
+    vector<double> coupling_arr(tau.size(),coupling_const * coupling_const);
+    vector<double> V_arr(tau.size(),0);
+
+    for (int i = 0; i < tau.size(); i++)
+    {
+        hpcos[i] = cosh(tau[i]-tau[tau.size()-1])*omega;
+        hpsin[i] = sinh(tau[tau.size()-1] * omega/2);
+        V_arr[i] = coupling_arr[i] * hpcos[i] / hpsin[i];
+
+        //cout << "this is V_arr " << V_arr[i] << endl;
+    }
+
+    return V_arr;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -75,7 +99,7 @@ MatrixXd Testing::Eigenvector_Even()
 {
 	MatrixXd a;
 
-	SelfAdjointEigenSolver<MatrixXd> es(Matrix_Even(3,1));
+	SelfAdjointEigenSolver<MatrixXd> es(Matrix_Even(3,gamma));
 	a = es.eigenvectors();
 
 	return a;
@@ -85,7 +109,7 @@ MatrixXd Testing::Eigenvalue_Even()
 {
 	MatrixXd b;
 
-	SelfAdjointEigenSolver<MatrixXd> es(Matrix_Even(3,1));
+	SelfAdjointEigenSolver<MatrixXd> es(Matrix_Even(3,gamma));
 	b = es.eigenvalues();
 
 	return b;
@@ -95,7 +119,7 @@ MatrixXd Testing::Eigenvector_Odd()
 {
 	MatrixXd a;
 
-	SelfAdjointEigenSolver<MatrixXd> es(Matrix_Odd(3,1));
+	SelfAdjointEigenSolver<MatrixXd> es(Matrix_Odd(3,gamma));
 	a = es.eigenvectors();
 
 	return a;
@@ -105,7 +129,7 @@ MatrixXd Testing::Eigenvalue_Odd()
 {
 	MatrixXd b;
 
-	SelfAdjointEigenSolver<MatrixXd> es(Matrix_Odd(3,1));
+	SelfAdjointEigenSolver<MatrixXd> es(Matrix_Odd(3,gamma));
 	b = es.eigenvalues();
 
 	return b;
@@ -122,11 +146,11 @@ MatrixXd Testing::Hamiltonian_N(MatrixXd even, MatrixXd odd, double g)
     MatrixXd odd_eigenvec;
     MatrixXd even_eigenvec;
 
-    odd_eigenvec = odd;
+    odd_eigenvec = odd.transpose();
     even_eigenvec = even;
 
     MatrixXd c;
-    c = even_eigenvec * odd_eigenvec;
+    c = odd_eigenvec * even_eigenvec;
 
     MatrixXd d = MatrixXd::Zero(3,3);
 
@@ -237,7 +261,7 @@ MatrixXd Testing::round_propagater_ite(const MatrixXd &loc, const vector<MatrixX
     }
 
     MatrixXd Bucket = MatrixXd::Zero(3,3);
-    Bucket = -loc * ite - (tau_grid[1]-tau_grid[0]) * itesum;
+    Bucket = -loc * ite + (tau_grid[1]-tau_grid[0]) * itesum;
     //cout << -loc * ite << endl;
     return Bucket;
 }
@@ -249,11 +273,12 @@ vector<MatrixXd> Testing::Propagator(int n,const vector<MatrixXd> &array, const 
     vector<MatrixXd> proparray(k);
     MatrixXd Iden = MatrixXd::Identity(3,3);
 
-    vector<double> coup = coupling(1,0.2,10);
-    vector<double> Int = Interact(coup,tau_grid);
+    vector<double> coup = coupling(1,g,10);
+    vector<double> Int = Interact_V(coup,tau_grid,1);
+    //vector<double> Int = Interact(coup,tau_grid);
 
-    MatrixXd H_N = Hamiltonian_N(Eigenvector_Even(),Eigenvector_Odd(),0.2);
-    vector<MatrixXd> H_e = Hamiltonian_exp(Eigenvalue_Even(),Eigenvalue_Odd());
+    MatrixXd H_N = Hamiltonian_N(Eigenvector_Even(),Eigenvector_Odd(),g);
+    //vector<MatrixXd> H_e = Hamiltonian_exp(Eigenvalue_Even(),Eigenvalue_Odd());
     vector<MatrixXd> Sig = array;
     /*
     for(int h = 0; h < Sig.size() ; h++)
@@ -281,8 +306,8 @@ double Testing::chemical_poten(MatrixXd prop)
     double lambda = -(1/tau_grid[k-1]) * log(Trace);
 
     
-    cout << "this is check" << endl;
-    cout << "grid" << endl << tau_grid[k-1] << endl;
+    //cout << "this is check" << endl;
+    //cout << "grid" << endl << tau_grid[k-1] << endl;
     
 
     return lambda;
@@ -294,9 +319,11 @@ vector<MatrixXd> Testing::Iteration(const int &n, int testingint)
 {
     vector<MatrixXd> Sig;
     vector<MatrixXd> Prop;
+    vector<MatrixXd> Prop_zeroth(k,MatrixXd::Identity(3,3));
 
-    vector<double> coup = coupling(1,0.2,10);
-    vector<double> Int = Interact(coup,tau_grid);
+    vector<double> coup = coupling(1,g,10);
+    vector<double> Int = Interact_V(coup,tau_grid,1);
+    //vector<double> Int = Interact(coup,tau_grid);
 
     /*
     for(int j=0; j<k; j++)
@@ -305,53 +332,78 @@ vector<MatrixXd> Testing::Iteration(const int &n, int testingint)
             }
     */
 
-    MatrixXd H_loc;
+    MatrixXd H_loc = Hamiltonian_loc(Eigenvalue_Even(),Eigenvalue_Odd());
     MatrixXd Iden = MatrixXd::Identity(3,3);
     double lambda;
-    MatrixXd H_N = Hamiltonian_N(Eigenvector_Even(),Eigenvector_Odd(),0.2);
+    MatrixXd H_N = Hamiltonian_N(Eigenvector_Even(),Eigenvector_Odd(),g);
     vector<MatrixXd> H_e = Hamiltonian_exp(Eigenvalue_Even(),Eigenvalue_Odd());
     
     for(int i = 0; i < testingint; i++)
     {
-        if(i==0)
+        if (i==0)
+        {   
+            Prop = Prop_zeroth;
+            //cout << "this is " << i << "th iteration " << endl;
+            for(int j=0; j<k; j++)
+            {
+                Prop[j](0,0) = exp(-tau_grid[j] * Hamiltonian_loc(Eigenvalue_Even(),Eigenvalue_Odd())(0,0));
+                Prop[j](1,1) = exp(-tau_grid[j] * Hamiltonian_loc(Eigenvalue_Even(),Eigenvalue_Odd())(1,1));
+                Prop[j](2,2) = exp(-tau_grid[j] * Hamiltonian_loc(Eigenvalue_Even(),Eigenvalue_Odd())(2,2));
+                //cout << "This is Trace" << endl << Prop[j].trace() << endl;
+                //cout << Prop[j] << endl;
+            }
+
+            lambda = chemical_poten(Prop[k-1]);
+
+            for(int j=0; j<k; j++)
+            {
+                Prop[j] = Prop[j] * exp(tau_grid[j]*(lambda));
+                //cout << "This is Trace" << endl << Prop[j].trace() << endl;
+                //cout << Prop[j] << endl;
+            }
+        }
+        /*
+        else if(i==1)
         {   
             H_loc = Hamiltonian_loc(Eigenvalue_Even(),Eigenvalue_Odd());
             Sig = Sigma(H_N,H_e,Int);
             Prop = Propagator(n,Sig,H_loc);
-            lambda = chemical_poten(Prop[9]);
-
-            cout << "this is " << i+1 << " th Prop" << endl;
+            lambda = chemical_poten(Prop[k-1]);
+            
+            cout << "this is " << i << " th Prop" << endl;
             cout << "this is lambda " << lambda << endl;
-
+            
             for(int j=0; j<k; j++)
             {
                 Prop[j] = Prop[j] * exp(tau_grid[j]*(lambda));
-                cout << "This is Trace" << endl << Prop[j].trace() << endl;
+                //cout << "This is Trace" << endl << Prop[j].trace() << endl;
                 cout << Prop[j] << endl;
             }
         }
+        */
         else
         {
-            cout << "this is " << i+1 << " th Prop" << endl;
+            //cout << "this is " << i << " th Prop" << endl;
 
             H_loc = H_loc - lambda * Iden;
-            
+            /*
             cout << "//////////////" << endl;
             cout << H_loc << endl;
             cout << "/////////////" << endl;
-
+            */
             Sig = Sigma(H_N,Prop,Int);
             Prop = Propagator(n,Sig,H_loc);
-            lambda = chemical_poten(Prop[9]);
-         
-            cout << "this is lambda" << lambda << endl;
+            lambda = chemical_poten(Prop[k-1]);
+            
+            //cout << "this is lambda" << lambda << endl;
 
             for(int j=0; j<k; j++)
             {
                 Prop[j] = Prop[j] * exp(tau_grid[j]*(lambda));
-                cout << "This is trace" << endl << Prop[j].trace() << endl;
-                cout << Prop[j] << endl;
+                //cout << "This is trace" << endl << Prop[j].trace() << endl;
+                //cout << Prop[j] << endl;
             }
+            
         }
     
     }
@@ -363,7 +415,7 @@ vector<MatrixXd> Testing::Iteration(const int &n, int testingint)
 
 ///////////////////////////////////////////////////////////////////////////////
 /*
-vector<double> Testing::TestingIteration(const int &n, int testingint, int testingint2)
+vector<double> Testing::TestingIteration(const int &n, int testingint)
 {
     vector<MatrixXd> Sig;
     vector<MatrixXd> Prop;
@@ -371,63 +423,83 @@ vector<double> Testing::TestingIteration(const int &n, int testingint, int testi
     vector<double> coup = coupling(1,0.2,10);
     vector<double> Int = Interact(coup,tau_grid);
 
+    vector<double>element1(testingint,0);
+    vector<double>element2(testingint,0);
+    vector<double>element3(testingint,0);
 
-    for(int j=0; j<k; j++)
-            {
-                cout << Int[j] << endl;
-            }
-
-
-    MatrixXd H_loc = Hamiltonian_loc(Eigenvalue_Even(),Eigenvalue_Odd());
+    MatrixXd H_loc;
+    MatrixXd Iden = MatrixXd::Identity(3,3);
+    double lambda;
+    vector xgrid(testingint,0);
     MatrixXd H_N = Hamiltonian_N(Eigenvector_Even(),Eigenvector_Odd(),0.2);
     vector<MatrixXd> H_e = Hamiltonian_exp(Eigenvalue_Even(),Eigenvalue_Odd());
-
-    vector<double> element1(testingint,0);
-    vector<double> element2(testingint,0);
     
-    for (int j = 1; j < testingint; j++)
+    for(int i = 0; i < testingint; i++)
     {
-
-        for(int i = 0; i < j; i++)
-        {
-            if(i==0)
-            {   Sig = Sigma(H_N,H_e,Int);
-                Prop = Propagator(n,Sig);
-            }
-            else
+        if(i==0)
+        {   
+            H_loc = Hamiltonian_loc(Eigenvalue_Even(),Eigenvalue_Odd());
+            Sig = Sigma(H_N,H_e,Int);
+            Prop = Propagator(n,Sig,H_loc);
+            lambda = chemical_poten(Prop[k-1]);
+            for(int j=0; j<k;j++)
             {
-                Sig = Sigma(H_N,Prop,Int);
-                Prop = Propagator(n,Sig);
+            	Prop[j] = Prop[j] * exp(tau_grid[j]*lambda);
             }
-        
+
         }
-        element1[j] = Prop[testingint2](0,0);
-        element2[j] = Prop[testingint2](1,1);
+        else
+        {
+            H_loc = H_loc - lambda * Iden;
 
+            Sig = Sigma(H_N,Prop,Int);
+            Prop = Propagator(n,Sig,H_loc);
+            lambda = chemical_poten(Prop[k-1]);
+            for(int j=0; j<k;j++)
+            {
+            	Prop[j] = Prop[j] * exp(tau_grid[j]*lambda);
+            }
+        }
+
+        element1[i] = Prop[k-1](0,0);
+        element2[i] = Prop[k-1](1,1);
+        element3[i] = Prop[k-1](2,2);
+        xgrid[i] = i;
     }
-
-    return element1;
 }
 */
 //////////////////////////////////////////////////////////////////////////////
 
+vector<double> Testing::Chi_sp(const int &weight, int iteration)
+{
+    MatrixXd Gellmann_1 = MatrixXd::Zero(3,3);
+
+    Gellmann_1(0,1) = 1;
+    Gellmann_1(1,0) = 1;
+
+    vector<double> chi_array(k,0);
+
+    for (int i=0; i<k; i++)
+    {
+        chi_array[i] = (Iteration(weight,iteration)[k-i-1] * Gellmann_1 * Iteration(weight,iteration)[i] * Gellmann_1).trace();
+        cout << chi_array[i] << endl;
+    }
+
+    return chi_array;
+}
+
 
 int main()
 {
-    
-    vector<MatrixXd> Iden(1,MatrixXd::Identity(3,3));
-
     Testing test;
-    
-    //Testing test; 
 
-    vector<MatrixXd> Prop = test.Iteration(5,9);
-    for(int i=0; i<10;i++)
-    {
-        //cout << Prop[i] << endl;
-    }
-    
-    vector<double> Plot_first(10,0);
+    //vector<MatrixXd> Prop = test.Iteration(5,4);
+
+    //test.Chi_sp(0,1);
+
+    MatrixXd a = test.Hamiltonian_N(test.Eigenvector_Even(),test.Eigenvector_Odd(),g);
+
+    cout << a << endl;
 
 
     /*
