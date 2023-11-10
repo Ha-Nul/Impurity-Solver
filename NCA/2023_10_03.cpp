@@ -184,6 +184,17 @@ MatrixXd Testing::Hamiltonian_loc(MatrixXd a, MatrixXd b)
     return Hamiltonian;
 }
 
+MatrixXd Testing::Hamiltonian_loc_ite(MatrixXd a, MatrixXd b, const double &lambda)
+{
+    MatrixXd Hamiltonian = MatrixXd::Zero(3,3);
+
+    Hamiltonian(0,0) = a(0)-lambda;
+    Hamiltonian(1,1) = b(0)-lambda;
+    Hamiltonian(2,2) = a(1)-lambda;
+
+    return Hamiltonian;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -233,7 +244,7 @@ MatrixXd Testing::round_propagater_ite(const MatrixXd &loc, const vector<MatrixX
 
 
 
-vector<MatrixXd> Testing::Propagator(int n,const vector<MatrixXd> &array)
+vector<MatrixXd> Testing::Propagator(int n,const vector<MatrixXd> &array, const MatrixXd &loc)
 {
     vector<MatrixXd> proparray(k);
     MatrixXd Iden = MatrixXd::Identity(3,3);
@@ -241,8 +252,7 @@ vector<MatrixXd> Testing::Propagator(int n,const vector<MatrixXd> &array)
     vector<double> coup = coupling(1,0.2,10);
     vector<double> Int = Interact(coup,tau_grid);
 
-    MatrixXd H_loc = Hamiltonian_loc(Eigenvalue_Even(),Eigenvalue_Odd());
-    MatrixXd H_N = Hamiltonian_N(Eigenvector_Even(),Eigenvector_Odd(),3);
+    MatrixXd H_N = Hamiltonian_N(Eigenvector_Even(),Eigenvector_Odd(),0.2);
     vector<MatrixXd> H_e = Hamiltonian_exp(Eigenvalue_Even(),Eigenvalue_Odd());
     vector<MatrixXd> Sig = array;
     /*
@@ -256,11 +266,26 @@ vector<MatrixXd> Testing::Propagator(int n,const vector<MatrixXd> &array)
     
     for(int i = 1; i < k; i++)
     {
-        proparray[i] = proparray[i-1] + (tau_grid[1]-tau_grid[0]) * round_propagater_ite(H_loc,Sig,proparray[i-1],n);
+        proparray[i] = proparray[i-1] + (tau_grid[1]-tau_grid[0]) * round_propagater_ite(loc,Sig,proparray[i-1],n);
         //cout << "this is round propagator" << endl << i << endl << round_propagater_ite(H_loc,Sig,proparray[i-1],n) << endl;
     }
 
     return proparray;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+double Testing::chemical_poten(MatrixXd prop)
+{
+    double Trace = prop.trace();
+    double lambda = -(1/tau_grid[k-1]) * log(Trace);
+
+    
+    cout << "this is check" << endl;
+    cout << "grid" << endl << tau_grid[k-1] << endl;
+    
+
+    return lambda;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -280,35 +305,51 @@ vector<MatrixXd> Testing::Iteration(const int &n, int testingint)
             }
     */
 
-    MatrixXd H_loc = Hamiltonian_loc(Eigenvalue_Even(),Eigenvalue_Odd());
+    MatrixXd H_loc;
+    MatrixXd Iden = MatrixXd::Identity(3,3);
+    double lambda;
     MatrixXd H_N = Hamiltonian_N(Eigenvector_Even(),Eigenvector_Odd(),0.2);
     vector<MatrixXd> H_e = Hamiltonian_exp(Eigenvalue_Even(),Eigenvalue_Odd());
     
     for(int i = 0; i < testingint; i++)
     {
         if(i==0)
-        {   Sig = Sigma(H_N,H_e,Int);
-            Prop = Propagator(n,Sig);
+        {   
+            H_loc = Hamiltonian_loc(Eigenvalue_Even(),Eigenvalue_Odd());
+            Sig = Sigma(H_N,H_e,Int);
+            Prop = Propagator(n,Sig,H_loc);
+            lambda = chemical_poten(Prop[9]);
 
-            cout << "this is " << i << " th Prop" << endl;
+            cout << "this is " << i+1 << " th Prop" << endl;
+            cout << "this is lambda " << lambda << endl;
 
             for(int j=0; j<k; j++)
             {
-                Prop[j] = Prop[j] * exp(tau_grid[j]*(-0.723597));
-                cout << j << endl;
+                Prop[j] = Prop[j] * exp(tau_grid[j]*(lambda));
+                cout << "This is Trace" << endl << Prop[j].trace() << endl;
                 cout << Prop[j] << endl;
             }
         }
         else
         {
+            cout << "this is " << i+1 << " th Prop" << endl;
+
+            H_loc = H_loc - lambda * Iden;
+            
+            cout << "//////////////" << endl;
+            cout << H_loc << endl;
+            cout << "/////////////" << endl;
+
             Sig = Sigma(H_N,Prop,Int);
-            Prop = Propagator(n,Sig);
+            Prop = Propagator(n,Sig,H_loc);
+            lambda = chemical_poten(Prop[9]);
          
-            cout << "this is " << i << " th Prop" << endl;
+            cout << "this is lambda" << lambda << endl;
 
             for(int j=0; j<k; j++)
             {
-                //Prop[j] = Prop[j] * exp(tau_grid[j]*(-0.723597));
+                Prop[j] = Prop[j] * exp(tau_grid[j]*(lambda));
+                cout << "This is trace" << endl << Prop[j].trace() << endl;
                 cout << Prop[j] << endl;
             }
         }
@@ -321,7 +362,7 @@ vector<MatrixXd> Testing::Iteration(const int &n, int testingint)
 //////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
-
+/*
 vector<double> Testing::TestingIteration(const int &n, int testingint, int testingint2)
 {
     vector<MatrixXd> Sig;
@@ -330,12 +371,12 @@ vector<double> Testing::TestingIteration(const int &n, int testingint, int testi
     vector<double> coup = coupling(1,0.2,10);
     vector<double> Int = Interact(coup,tau_grid);
 
-    /*
+
     for(int j=0; j<k; j++)
             {
                 cout << Int[j] << endl;
             }
-    */
+
 
     MatrixXd H_loc = Hamiltonian_loc(Eigenvalue_Even(),Eigenvalue_Odd());
     MatrixXd H_N = Hamiltonian_N(Eigenvector_Even(),Eigenvector_Odd(),0.2);
@@ -367,24 +408,9 @@ vector<double> Testing::TestingIteration(const int &n, int testingint, int testi
 
     return element1;
 }
-
+*/
 //////////////////////////////////////////////////////////////////////////////
 
-
-/////////////////////////////////////////////////////////////////////////////
-
-double Testing::logg(vector<MatrixXd> prop)
-{
-    double Trace = prop[k-1].trace();
-    double lambda = -(1/tau_grid[k-1]) * log(Trace);
-
-    cout << "Trace" << endl << Trace << endl;
-    cout << "grid" << endl << tau_grid[k-1] << endl;
-
-    return lambda;
-}
-
-////////////````//////////////////////////////////////////////////////////////////
 
 int main()
 {
@@ -395,10 +421,10 @@ int main()
     
     //Testing test; 
 
-    vector<MatrixXd> Prop = test.Iteration(5,1);
+    vector<MatrixXd> Prop = test.Iteration(5,9);
     for(int i=0; i<10;i++)
     {
-        cout << Prop[i] << endl;
+        //cout << Prop[i] << endl;
     }
     
     vector<double> Plot_first(10,0);
@@ -410,13 +436,8 @@ int main()
         cout << test.TestingIteration(5,20,9)[i] << endl;
     }
     */
-
-
     
-    
-    double check = test.logg(Prop);
-
-    cout << "this is check" << endl << check << endl;
+    //double check = test.chemical_poten(Prop[9]);
     
 
 	return 0;

@@ -95,12 +95,13 @@ class Testing
         MatrixXd Hamiltonian_N(MatrixXd even, MatrixXd odd, double g);
         vector<MatrixXd> Hamiltonian_exp(MatrixXd a, MatrixXd b);
         MatrixXd Hamiltonian_loc(MatrixXd a, MatrixXd b);
+        MatrixXd Hamiltonian_loc_ite(MatrixXd a, MatrixXd b,const double &lambda);
 
         MatrixXd round_propagater_ite(const MatrixXd &loc, const vector<MatrixXd> &sigma, const MatrixXd &ite, int n);
         vector<MatrixXd> Sigma(const MatrixXd &N,const vector<MatrixXd> &H_exp, const vector<double> &V);
-        vector<MatrixXd> Propagator(int n ,const vector<MatrixXd> &array);
+        vector<MatrixXd> Propagator(int n ,const vector<MatrixXd> &array , const MatrixXd &loc);
 
-        double logg(vector<MatrixXd> prop);
+        double chemical_poten(MatrixXd prop);
 
         vector<MatrixXd> Iteration(const int &n, int testingint);
         vector<double> TestingIteration(const int &n, int testingint, int testingint2);
