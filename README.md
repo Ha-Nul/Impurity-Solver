@@ -5,8 +5,8 @@ This Repository contains three folders,
 *Hamiltonian* folder for Hamiltonian for three-level charge qubit system,
 *NCA* folder for NCA code written by c++ includes the header file. 
 
--------------------------------------------------------------------------
-The Retarded spin-spin function code and Hamiltonian code were saved as .py module so anyone who wants to use the code, just clone the folder and import the .py file in their python code.
+The Retarded spin-spin function code and Hamiltonian code were saved as .py module so anyone who wants to use the code,
+just clone the folder and import the .py file in their python code. </br>
 NCA code must be used with firstheader.hpp file.
--------------------------------------------------------------------------
+
 
