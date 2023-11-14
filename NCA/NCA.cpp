@@ -8,7 +8,7 @@
 using namespace std;
 using namespace Eigen;
 
-const double g = 0.2;
+const double g = 0;
 vector<double> k_grid(10,1);
 double gamma = 1;
 
@@ -350,7 +350,7 @@ vector<MatrixXd> Testing::Iteration(const int &n, int testingint)
                 Prop[j](1,1) = exp(-tau_grid[j] * Hamiltonian_loc(Eigenvalue_Even(),Eigenvalue_Odd())(1,1));
                 Prop[j](2,2) = exp(-tau_grid[j] * Hamiltonian_loc(Eigenvalue_Even(),Eigenvalue_Odd())(2,2));
                 //cout << "This is Trace" << endl << Prop[j].trace() << endl;
-                //cout << Prop[j] << endl;
+                cout << Prop[j] << endl;
             }
 
             lambda = chemical_poten(Prop[k-1]);
@@ -493,24 +493,8 @@ int main()
 {
     Testing test;
 
-    //vector<MatrixXd> Prop = test.Iteration(5,4);
+    test.Chi_sp(0,1);
 
-    //test.Chi_sp(0,1);
-
-    MatrixXd a = test.Hamiltonian_N(test.Eigenvector_Even(),test.Eigenvector_Odd(),g);
-
-    cout << a << endl;
-
-
-    /*
-    for(int i=0; i<20;i++)
-    {
-        cout << test.TestingIteration(5,20,9)[i] << endl;
-    }
-    */
-    
-    //double check = test.chemical_poten(Prop[9]);
-    
 
 	return 0;
     

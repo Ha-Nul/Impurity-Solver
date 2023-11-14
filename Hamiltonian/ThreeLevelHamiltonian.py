@@ -149,9 +149,9 @@ def Hamiltonian_Matrix(r: float,z: int,g: float,omega: float):
     r : Value of Gamma, z : dimension of Matrix, g : coupling strength, omega : frequency '''
 
     #Matrix Elements
-    eig_even_gs = Standard_even_Eigenval(r,2,0)
-    eig_even_2n = Standard_even_Eigenval(r,2,1)
-    eig_odd = Standard_odd_Eigenval(r,2,0)
+    eig_even_gs = Standard_even_Eigenval(r,3,0)
+    eig_even_2n = Standard_even_Eigenval(r,3,1)
+    eig_odd = Standard_odd_Eigenval(r,3,0)
 
     Diag_gs_to_1s = np.dot(Standard_odd_Eigenvec(r,z,0),Standard_even_Eigenvec(r,z,0))
     Diag_1s_to_2n = -np.dot(Standard_odd_Eigenvec(r,z,0),Standard_even_Eigenvec(r,z,1))
