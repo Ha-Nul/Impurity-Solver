@@ -6,11 +6,12 @@
 #include <cmath>
 #include <iomanip>
 #include <string>
+#include <const.h>
 
 using namespace std;
 using namespace Eigen;
 
-class MAIN_DEF
+class MD_OC //MAIN_DEF_OCA
 {
 private:
 
@@ -106,32 +107,37 @@ private:
     
 public:
 
-    vector<double> tau_grid = linspace(0, 1, 200);
-    static int k;
+    vector<double> tau_grid = linspace(0, 5, 201);
+    vector<double> mode_grid = linspace(1,100,100);
+    static int M;
+    static int t;
     double Delta_t = tau_grid[1] - tau_grid[0];
+
+    double pi = dlib::pi;
 
     static MatrixXd H_N;
 
-    void CAL_COUP_INT_with_g_arr(double g);
+    void CAL_COUP_INT_with_g_arr(double alpha, double k_cutoff);
 
     vector<double> green(vector<double> tau);
-    vector<double> coupling(double v, double g, double W);
-    vector<double> Interact_V(vector<double> coupling, vector<double> tau, double omega);
+    void Tilde_g_calculation_function(double alpha, double k_cutoff);
+    vector<double> Interact_V();
 
     MatrixXd Eigenvector_Even();
     MatrixXd Eigenvalue_Even();
     MatrixXd Eigenvector_Odd();
     MatrixXd Eigenvalue_Odd();
 
-    MatrixXd Hamiltonian_N(MatrixXd even, MatrixXd odd, double g);
+    MatrixXd Hamiltonian_N(MatrixXd even, MatrixXd odd);
     vector<MatrixXd> Hamiltonian_exp(MatrixXd a, MatrixXd b);
     MatrixXd Hamiltonian_loc(MatrixXd a, MatrixXd b);
 
     void NCA_self(const MatrixXd& N, const vector<MatrixXd>& H_exp, const vector<double>& V);
-    void OCA_self(MatrixXd& N, vector<MatrixXd>& H_exp, vector<double>& V);
-    void SELF_Energy(vector<MatrixXd> Prop);
+    void OCA_self(const vector<MatrixXd>& H_exp);
+    void OCA_T(const MatrixXd& N,const vector<MatrixXd>& H_exp, const vector<double>& V);
+    void SELF_Energy(vector<MatrixXd> &Prop);
 
-    MatrixXd round_propagator_ite(const MatrixXd& loc, const vector<MatrixXd>& sigma, const vector<MatrixXd>& ite, int n, int boolean);    
+    MatrixXd round_propagator_ite(const MatrixXd& loc, const vector<MatrixXd>& sigma, const vector<MatrixXd>& ite, int n, int boolean);
     vector<MatrixXd> Propagator(const vector<MatrixXd>& array, const MatrixXd& loc);
 
     double chemical_poten(MatrixXd prop);
@@ -139,6 +145,7 @@ public:
     vector<MatrixXd> Iteration(const int& iteration);
 
     void NCA_Chi_sp(vector<MatrixXd> ITER);
+    void OCA_store(vector<MatrixXd> ITER);
     void OCA_Chi_sp(vector<MatrixXd> ITER);
     vector<double> Chi_sp_Function(vector<MatrixXd> Iter);
 };
