@@ -1,13 +1,12 @@
 ## About Ha-Nul/Work
-(last edited: 2024.03.06)
-This Repository contains four folders,
-*Retarded spin-spin interaction* folder for retarded spin-spin function code,
-*Hamiltonian* folder for Hamiltonian for three-level charge qubit system,
-*NCA* folder for NCA code written by c++. 
-*OCA* folder for OCA code written by c++ language includes the header file(OCA_function_def.hpp)
+(last edited: 2024.10.17)
+*This Repository currently now editing*
+</br>
 
-The Retarded spin-spin function code and Hamiltonian code were saved as .py module so anyone who wants to use the code,
-just clone the folder and import the .py file in their python code. </br>
+### Contains 2 Folders</br>
+*Diagrammatic* Codes for Integro-differential equation for diagrammatic expansion method.</br>
+*ETC* Python Codes in other works</br>
+
 
 
 
